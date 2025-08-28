@@ -2,8 +2,11 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 // Configuração do pool de conexões PostgreSQL
+// Prioriza POSTGRES_URL do Vercel, depois DATABASE_URL genérica
+const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
+  connectionString,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   max: 20, // máximo de conexões no pool
   idleTimeoutMillis: 30000,

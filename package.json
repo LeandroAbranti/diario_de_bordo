@@ -5,8 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "build": "echo 'Build completed'",
     "dev": "nodemon server.js",
     "init-db": "node scripts/init-db.js",
+    "vercel-build": "npm run init-db",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
