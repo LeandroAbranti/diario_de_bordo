@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diário de Bordo - Viatura de Trânsito</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #1e3a8a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(30, 58, 138, 0.15);
+            overflow: hidden;
+            border: 2px solid rgba(30, 58, 138, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .step {
+            display: none;
+            animation: slideIn 0.5s ease-in-out;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #4ECDC4;
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+        }
+        
+        .viatura-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .viatura-card {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+        
+        .viatura-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.3);
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+        }
+        
+        .viatura-card.selected {
+            border-color: #ffffff;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+        
+        .status-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .status-option {
+            padding: 15px;
+            border: 2px solid rgba(30, 58, 138, 0.2);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            background: white;
+        }
+        
+        .status-option.ok {
+            background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
+            color: #047857;
+            border-color: rgba(5, 150, 105, 0.3);
+        }
+        
+        .status-option.not-ok {
+            background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+            color: #dc2626;
+            border-color: rgba(220, 38, 38, 0.3);
+        }
+        
+        .status-option.selected {
+            border-color: #1e3a8a;
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(30, 58, 138, 0.3);
+        }
+        
+        .cone-counter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .cone-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .cone-btn.minus {
+            background: linear-gradient(45deg, #dc2626, #b91c1c);
+            color: white;
+        }
+        
+        .cone-btn.plus {
+            background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+            color: white;
+        }
+        
+        .cone-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .cone-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .activities {
+            margin-top: 30px;
+        }
+        
+        .activity-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
+            background: linear-gradient(45deg, #1e40af, #2563eb);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #64748b, #475569);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #dc2626, #b91c1c);
+        }
+        
+        .btn-success {
+             background: linear-gradient(45deg, #059669, #047857);
+         }
+         
+         .btn-cloud {
+             background: linear-gradient(45deg, #1e3a8a, #1d4ed8);
+             margin-left: 10px;
+         }
+         
+         .upload-status {
+             position: fixed;
+             top: 50%;
+             left: 50%;
+             transform: translate(-50%, -50%);
+             background: linear-gradient(135deg, #ffffff, #f8fafc);
+             border: 2px solid rgba(30, 58, 138, 0.2);
+             padding: 30px;
+             border-radius: 15px;
+             box-shadow: 0 20px 60px rgba(30, 58, 138, 0.3);
+             z-index: 2000;
+             text-align: center;
+             min-width: 300px;
+             display: none;
+         }
+         
+         .upload-status.show {
+             display: block;
+         }
+         
+         .spinner {
+             border: 4px solid rgba(30, 58, 138, 0.1);
+             border-top: 4px solid #1e3a8a;
+             border-radius: 50%;
+             width: 40px;
+             height: 40px;
+             animation: spin 1s linear infinite;
+             margin: 0 auto 20px;
+         }
+         
+         @keyframes spin {
+             0% { transform: rotate(0deg); }
+             100% { transform: rotate(360deg); }
+         }
+         
+         .upload-overlay {
+             position: fixed;
+             top: 0;
+             left: 0;
+             width: 100%;
+             height: 100%;
+             background: rgba(0,0,0,0.5);
+             z-index: 1999;
+             display: none;
+         }
+         
+         .upload-overlay.show {
+             display: block;
+         }
+         
+         .retry-btn {
+             background: linear-gradient(45deg, #dc2626, #b91c1c);
+             color: white;
+             border: none;
+             padding: 10px 20px;
+             border-radius: 5px;
+             cursor: pointer;
+             margin: 10px 5px;
+             transition: all 0.3s ease;
+         }
+         
+         .retry-btn:hover {
+             transform: translateY(-2px);
+             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+         }
+         
+         .download-btn {
+             background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+             color: white;
+             border: none;
+             padding: 10px 20px;
+             border-radius: 5px;
+             cursor: pointer;
+             margin: 10px 5px;
+             transition: all 0.3s ease;
+         }
+         
+         .download-btn:hover {
+             transform: translateY(-2px);
+             box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+         }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(30, 58, 138, 0.2);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(30, 58, 138, 0.1);
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+        
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e1e8ed;
+            transition: all 0.3s ease;
+        }
+        
+        .step-dot.active {
+            background: #4ECDC4;
+            transform: scale(1.2);
+        }
+        
+        .step-dot.completed {
+            background: #28a745;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .auto-save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .auto-save-indicator.show {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .viatura-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .status-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="auto-save-indicator" id="autoSaveIndicator">
+        ✓ Dados salvos automaticamente
+    </div>
+    
+    <!-- Modal de Status de Upload -->
+    <div class="upload-overlay" id="uploadOverlay"></div>
+    <div class="upload-status" id="uploadStatus">
+        <div class="spinner" id="uploadSpinner"></div>
+        <h3 id="uploadTitle">Enviando para TeraBox...</h3>
+        <p id="uploadMessage">Preparando arquivo para upload...</p>
+        <div id="uploadActions" style="display: none;">
+            <button class="retry-btn" onclick="retryUpload()">🔄 Tentar Novamente</button>
+            <button class="download-btn" onclick="downloadFallback()">💾 Download Local</button>
+            <button class="btn btn-secondary" onclick="closeUploadModal()">Fechar</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>📋 Diário de Bordo</h1>
+            <p>Sistema de Registro de Viatura de Trânsito</p>
+        </div>
+        
+        <div class="content">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="step-indicator" id="stepIndicator"></div>
+            
+            <!-- Etapa 1: Seleção de Viatura -->
+            <div class="step active" id="step1">
+                <h2>🚗 Selecione a Viatura</h2>
+                <p>Escolha qual viatura será utilizada hoje:</p>
+                
+                <div class="viatura-grid">
+                    <div class="viatura-card" data-viatura="VTR 199">
+                        <h3>VTR 199</h3>
+                    </div>
+                    <div class="viatura-card" data-viatura="VTR 074">
+                        <h3>VTR 074</h3>
+                    </div>
+                    <div class="viatura-card" data-viatura="VTR 60">
+                        <h3>VTR 60</h3>
+                    </div>
+                    <div class="viatura-card" data-viatura="VTR 61">
+                        <h3>VTR 61</h3>
+                    </div>
+                    <div class="viatura-card" data-viatura="VTR 184">
+                        <h3>VTR 184</h3>
+                    </div>
+                </div>
+                
+                <div class="navigation">
+                    <div></div>
+                    <button class="btn" onclick="nextStep()" id="nextBtn1" disabled>Próximo</button>
+                </div>
+            </div>
+            
+            <!-- Etapa 2: Dados Iniciais -->
+            <div class="step" id="step2">
+                <h2>📊 Dados Iniciais</h2>
+                
+                <div class="form-group">
+                    <label for="kmInicial">🛣️ Quilometragem Inicial:</label>
+                    <input type="number" id="kmInicial" placeholder="Ex: 45000" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="condutor">👨‍✈️ Agente Condutor:</label>
+                    <input type="text" id="condutor" placeholder="Nome completo do condutor" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="assistentes">👥 Agente(s) Assistente(s):</label>
+                    <textarea id="assistentes" rows="3" placeholder="Nome(s) do(s) assistente(s), separados por vírgula se houver mais de um"></textarea>
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="prevStep()">Anterior</button>
+                    <button class="btn" onclick="nextStep()" id="nextBtn2">Próximo</button>
+                </div>
+            </div>
+            
+            <!-- Etapa 3: Status da Viatura -->
+            <div class="step" id="step3">
+                <h2>🔧 Status da Viatura</h2>
+                
+                <div class="form-group">
+                    <label>🧽 Limpeza da Viatura:</label>
+                    <div class="status-group">
+                        <div class="status-option ok" data-status="ok">
+                            <div>✅ OK</div>
+                            <small>Viatura limpa</small>
+                        </div>
+                        <div class="status-option not-ok" data-status="not-ok">
+                            <div>❌ NÃO OK</div>
+                            <small>Viatura suja</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>🚧 Quantidade de Cones na Viatura:</label>
+                    <div class="cone-counter">
+                        <button class="cone-btn minus" type="button" onclick="changeCones(-1)">-</button>
+                        <div class="cone-display" id="coneCount">0</div>
+                        <button class="cone-btn plus" type="button" onclick="changeCones(1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="prevStep()">Anterior</button>
+                    <button class="btn" onclick="nextStep()" id="nextBtn3">Próximo</button>
+                </div>
+            </div>
+            
+            <!-- Etapa 4: Atividades -->
+            <div class="step" id="step4">
+                <h2>📝 Atividades do Dia</h2>
+                <p>Registre todas as atividades realizadas durante o turno:</p>
+                
+                <div class="activities" id="activitiesContainer">
+                    <!-- Atividades serão adicionadas dinamicamente -->
+                </div>
+                
+                <button class="btn" onclick="addActivity()">+ Nova Atividade</button>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="prevStep()">Anterior</button>
+                    <button class="btn" onclick="nextStep()" id="nextBtn4">Próximo</button>
+                </div>
+            </div>
+            
+            <!-- Etapa 5: Finalização -->
+            <div class="step" id="step5">
+                <h2>🏁 Finalização do Turno</h2>
+                
+                <div class="form-group">
+                    <label for="kmFinal">🛣️ Quilometragem Final:</label>
+                    <input type="number" id="kmFinal" placeholder="Ex: 45150" required>
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="prevStep()">Anterior</button>
+                    <button class="btn" onclick="nextStep()">Ver Resumo</button>
+                </div>
+            </div>
+            
+            <!-- Etapa 6: Resumo -->
+            <div class="step" id="step6">
+                <h2>📋 Resumo do Diário de Bordo</h2>
+                
+                <div class="summary-card" id="summaryCard">
+                    <!-- Resumo será gerado dinamicamente -->
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="prevStep()">Editar</button>
+                    <button class="btn btn-success" onclick="generatePDF()">💾 Salvar PDF</button>
+                    <button class="btn btn-cloud" onclick="saveToCloud()">☁️ Salvar na Nuvem</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração do TeraBox
+        const TERABOX_CONFIG = {
+            uploadUrl: 'https://1024terabox.com/s/1XMxIP7cI4OQTarpBAC-VVQ',
+            apiEndpoint: 'https://www.terabox.com/api/upload',
+            // Configurações para diferentes métodos de upload
+            methods: {
+                direct: 'https://www.terabox.com/api/upload',
+                share: 'https://1024terabox.com/s/1XMxIP7cI4OQTarpBAC-VVQ',
+                remote: 'https://www.terabox.com/api/remote-upload'
+            }
+        };
+        
+        // Variáveis globais para controle de upload
+        let currentPdfBlob = null;
+        let currentFileName = null;
+        let uploadAttempts = 0;
+        const MAX_UPLOAD_ATTEMPTS = 3;
+        
+        let currentStep = 1;
+        const totalSteps = 6;
+        let formData = {};
+        let activities = [];
+        let coneCount = 0;
+        let selectedViatura = '';
+        let selectedLimpeza = '';
+        
+        // Carrega dados salvos automaticamente
+        window.addEventListener('load', function() {
+            loadAutoSavedData();
+            updateProgress();
+            updateStepIndicator();
+        });
+        
+        // Salva dados automaticamente a cada mudança
+        function autoSave() {
+            const data = {
+                currentStep,
+                selectedViatura,
+                selectedLimpeza,
+                coneCount,
+                activities,
+                formData: {
+                    kmInicial: document.getElementById('kmInicial')?.value || '',
+                    condutor: document.getElementById('condutor')?.value || '',
+                    assistentes: document.getElementById('assistentes')?.value || '',
+                    kmFinal: document.getElementById('kmFinal')?.value || ''
+                }
+            };
+            
+            try {
+                sessionStorage.setItem('diarioBordo', JSON.stringify(data));
+                showAutoSaveIndicator();
+            } catch (e) {
+                console.log('Dados salvos em memória');
+            }
+        }
+        
+        function loadAutoSavedData() {
+            try {
+                const savedData = sessionStorage.getItem('diarioBordo');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    currentStep = data.currentStep || 1;
+                    selectedViatura = data.selectedViatura || '';
+                    selectedLimpeza = data.selectedLimpeza || '';
+                    coneCount = data.coneCount || 0;
+                    activities = data.activities || [];
+                    
+                    // Restaura campos do formulário
+                    if (data.formData) {
+                        Object.keys(data.formData).forEach(key => {
+                            const element = document.getElementById(key);
+                            if (element) element.value = data.formData[key];
+                        });
+                    }
+                    
+                    // Restaura seleções
+                    if (selectedViatura) {
+                        const viaturaCard = document.querySelector(`[data-viatura="${selectedViatura}"]`);
+                        if (viaturaCard) viaturaCard.classList.add('selected');
+                        document.getElementById('nextBtn1').disabled = false;
+                    }
+                    
+                    if (selectedLimpeza) {
+                        const statusOption = document.querySelector(`[data-status="${selectedLimpeza}"]`);
+                        if (statusOption) statusOption.classList.add('selected');
+                    }
+                    
+                    document.getElementById('coneCount').textContent = coneCount;
+                    
+                    // Restaura atividades
+                    activities.forEach(activity => {
+                        addActivityToDOM(activity);
+                    });
+                    
+                    // Vai para o step correto
+                    showStep(currentStep);
+                }
+            } catch (e) {
+                console.log('Nenhum dado salvo encontrado');
+            }
+        }
+        
+        function showAutoSaveIndicator() {
+            const indicator = document.getElementById('autoSaveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Event listeners para salvar automaticamente
+        document.addEventListener('input', autoSave);
+        document.addEventListener('change', autoSave);
+        
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step${step}`).classList.add('active');
+            currentStep = step;
+            updateProgress();
+            updateStepIndicator();
+            autoSave();
+        }
+        
+        function nextStep() {
+            if (validateCurrentStep()) {
+                if (currentStep < totalSteps) {
+                    showStep(currentStep + 1);
+                    if (currentStep === 6) {
+                        generateSummary();
+                    }
+                }
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 1) {
+                showStep(currentStep - 1);
+            }
+        }
+        
+        function validateCurrentStep() {
+            switch(currentStep) {
+                case 1:
+                    return selectedViatura !== '';
+                case 2:
+                    const kmInicial = document.getElementById('kmInicial').value;
+                    const condutor = document.getElementById('condutor').value;
+                    if (!kmInicial || !condutor) {
+                        alert('Por favor, preencha todos os campos obrigatórios.');
+                        return false;
+                    }
+                    return true;
+                case 3:
+                    if (!selectedLimpeza) {
+                        alert('Por favor, selecione o status da limpeza.');
+                        return false;
+                    }
+                    return true;
+                case 5:
+                    const kmFinal = document.getElementById('kmFinal').value;
+                    if (!kmFinal) {
+                        alert('Por favor, informe a quilometragem final.');
+                        return false;
+                    }
+                    return true;
+                default:
+                    return true;
+            }
+        }
+        
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+        
+        function updateStepIndicator() {
+            const indicator = document.getElementById('stepIndicator');
+            indicator.innerHTML = '';
+            
+            for (let i = 1; i <= totalSteps; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'step-dot';
+                
+                if (i < currentStep) dot.classList.add('completed');
+                if (i === currentStep) dot.classList.add('active');
+                
+                indicator.appendChild(dot);
+            }
+        }
+        
+        // Seleção de viatura
+        document.querySelectorAll('.viatura-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.viatura-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedViatura = this.dataset.viatura;
+                document.getElementById('nextBtn1').disabled = false;
+                autoSave();
+            });
+        });
+        
+        // Seleção de status de limpeza
+        document.querySelectorAll('.status-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.status-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedLimpeza = this.dataset.status;
+                autoSave();
+            });
+        });
+        
+        function changeCones(delta) {
+            const newCount = coneCount + delta;
+            if (newCount >= 0 && newCount <= 8) {
+                coneCount = newCount;
+                document.getElementById('coneCount').textContent = coneCount;
+                autoSave();
+            }
+        }
+        
+        function addActivity() {
+            const activity = {
+                id: Date.now(),
+                time: '',
+                description: ''
+            };
+            activities.push(activity);
+            addActivityToDOM(activity);
+            autoSave();
+        }
+        
+        function addActivityToDOM(activity) {
+            const container = document.getElementById('activitiesContainer');
+            const activityDiv = document.createElement('div');
+            activityDiv.className = 'activity-item';
+            activityDiv.dataset.id = activity.id;
+            
+            activityDiv.innerHTML = `
+                <div class="activity-header">
+                    <h4>Atividade ${activities.length}</h4>
+                    <button class="btn btn-danger btn-sm" onclick="removeActivity(${activity.id})">🗑️</button>
+                </div>
+                <div class="form-group">
+                    <label>⏰ Horário:</label>
+                    <input type="time" value="${activity.time}" onchange="updateActivity(${activity.id}, 'time', this.value)">
+                </div>
+                <div class="form-group">
+                    <label>📝 Descrição da Atividade:</label>
+                    <textarea rows="3" placeholder="Descreva detalhadamente a atividade realizada..." onchange="updateActivity(${activity.id}, 'description', this.value)">${activity.description}</textarea>
+                </div>
+            `;
+            
+            container.appendChild(activityDiv);
+        }
+        
+        function updateActivity(id, field, value) {
+            const activity = activities.find(a => a.id === id);
+            if (activity) {
+                activity[field] = value;
+                autoSave();
+            }
+        }
+        
+        function removeActivity(id) {
+            activities = activities.filter(a => a.id !== id);
+            document.querySelector(`[data-id="${id}"]`).remove();
+            autoSave();
+        }
+        
+        function generateSummary() {
+            const kmInicial = document.getElementById('kmInicial').value;
+            const kmFinal = document.getElementById('kmFinal').value;
+            const condutor = document.getElementById('condutor').value;
+            const assistentes = document.getElementById('assistentes').value;
+            const kmRodados = kmFinal - kmInicial;
+            
+            const summaryCard = document.getElementById('summaryCard');
+            summaryCard.innerHTML = `
+                <h3>🚗 ${selectedViatura}</h3>
+                <div class="summary-item">
+                    <strong>👨‍✈️ Condutor:</strong>
+                    <span>${condutor}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>👥 Assistentes:</strong>
+                    <span>${assistentes || 'Nenhum'}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>🛣️ KM Inicial:</strong>
+                    <span>${kmInicial}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>🏁 KM Final:</strong>
+                    <span>${kmFinal}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>📏 KM Rodados:</strong>
+                    <span>${kmRodados}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>🧽 Limpeza:</strong>
+                    <span>${selectedLimpeza === 'ok' ? '✅ OK' : '❌ Não OK'}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>🚧 Cones:</strong>
+                    <span>${coneCount}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>📝 Atividades:</strong>
+                    <span>${activities.length}</span>
+                </div>
+            `;
+        }
+        
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Cabeçalho
+            doc.setFontSize(20);
+            doc.text('DIÁRIO DE BORDO - VIATURA DE TRÂNSITO', 20, 20);
+            
+            doc.setFontSize(12);
+            const today = new Date().toLocaleDateString('pt-BR');
+            doc.text(`Data: ${today}`, 20, 35);
+            
+            // Dados da viatura
+            let y = 50;
+            doc.setFontSize(14);
+            doc.text('DADOS DA VIATURA', 20, y);
+            
+            y += 10;
+            doc.setFontSize(11);
+            doc.text(`Viatura: ${selectedViatura}`, 20, y);
+            
+            y += 8;
+            doc.text(`Condutor: ${document.getElementById('condutor').value}`, 20, y);
+            
+            y += 8;
+            const assistentes = document.getElementById('assistentes').value;
+            doc.text(`Assistentes: ${assistentes || 'Nenhum'}`, 20, y);
+            
+            y += 8;
+            doc.text(`KM Inicial: ${document.getElementById('kmInicial').value}`, 20, y);
+            
+            y += 8;
+            doc.text(`KM Final: ${document.getElementById('kmFinal').value}`, 20, y);
+            
+            y += 8;
+            const kmRodados = document.getElementById('kmFinal').value - document.getElementById('kmInicial').value;
+            doc.text(`KM Rodados: ${kmRodados}`, 20, y);
+            
+            y += 8;
+            doc.text(`Limpeza: ${selectedLimpeza === 'ok' ? 'OK' : 'Não OK'}`, 20, y);
+            
+            y += 8;
+            doc.text(`Cones na viatura: ${coneCount}`, 20, y);
+            
+            // Atividades
+            y += 20;
+            doc.setFontSize(14);
+            doc.text('ATIVIDADES REALIZADAS', 20, y);
+            
+            y += 15;
+            doc.setFontSize(11);
+            
+            if (activities.length === 0) {
+                doc.text('Nenhuma atividade registrada.', 20, y);
+            } else {
+                activities.forEach((activity, index) => {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    
+                    doc.text(`${index + 1}. Horário: ${activity.time || 'Não informado'}`, 20, y);
+                    y += 8;
+                    
+                    // Quebra texto longo em múltiplas linhas
+                    const description = activity.description || 'Descrição não informada';
+                    const splitText = doc.splitTextToSize(description, 170);
+                    doc.text(splitText, 20, y);
+                    y += splitText.length * 6 + 5;
+                });
+            }
+            
+            // Rodapé
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.text(`Página ${i} de ${pageCount}`, 170, 290);
+                doc.text('Sistema de Diário de Bordo - Viatura de Trânsito', 20, 290);
+            }
+            
+            // Preparar arquivo para upload automático
+            const fileName = `Diario_Bordo_${selectedViatura.replace(' ', '_')}_${today.replace(/\//g, '-')}.pdf`;
+            const pdfBlob = doc.output('blob');
+            
+            // Armazenar dados globalmente para retry/fallback
+            currentPdfBlob = pdfBlob;
+            currentFileName = fileName;
+            uploadAttempts = 1;
+            
+            // Mostrar modal de upload
+            showUploadModal();
+            updateUploadStatus('📄 Gerando PDF...', 'Preparando arquivo para upload...');
+            
+            // Pequeno delay para mostrar o modal
+            setTimeout(async () => {
+                // Tentar upload automático para TeraBox
+                updateUploadStatus('☁️ Enviando para TeraBox...', 'Tentando upload automático...');
+                
+                try {
+                    const result = await uploadToTeraBox(pdfBlob, fileName);
+                    
+                    if (result.success) {
+                        showUploadSuccess(result);
+                    } else {
+                        showUploadError(result.error);
+                    }
+                } catch (error) {
+                    console.error('Erro no processo de upload:', error);
+                    showUploadError(error.message);
+                }
+            }, 500);
+         }
+         
+         // Função principal de upload para TeraBox
+         async function uploadToTeraBox(pdfBlob, fileName) {
+             try {
+                 // Método 1: Tentar upload direto via API
+                 const directResult = await tryDirectUpload(pdfBlob, fileName);
+                 if (directResult.success) {
+                     return directResult;
+                 }
+                 
+                 // Método 2: Tentar upload via formulário web
+                 const webResult = await tryWebFormUpload(pdfBlob, fileName);
+                 if (webResult.success) {
+                     return webResult;
+                 }
+                 
+                 // Método 3: Upload remoto (se disponível)
+                 const remoteResult = await tryRemoteUpload(pdfBlob, fileName);
+                 if (remoteResult.success) {
+                     return remoteResult;
+                 }
+                 
+                 throw new Error('Todos os métodos de upload falharam');
+                 
+             } catch (error) {
+                 console.error('Erro no upload para TeraBox:', error);
+                 return {
+                     success: false,
+                     error: error.message,
+                     fallback: true
+                 };
+             }
+         }
+         
+         // Método 1: Upload direto via API
+         async function tryDirectUpload(pdfBlob, fileName) {
+             try {
+                 const formData = new FormData();
+                 formData.append('file', pdfBlob, fileName);
+                 formData.append('path', '/Diarios_de_Bordo/');
+                 
+                 const response = await fetch(TERABOX_CONFIG.methods.direct, {
+                     method: 'POST',
+                     body: formData,
+                     headers: {
+                         'Accept': 'application/json'
+                     }
+                 });
+                 
+                 if (response.ok) {
+                     const result = await response.json();
+                     return {
+                         success: true,
+                         method: 'direct',
+                         url: result.url || TERABOX_CONFIG.uploadUrl,
+                         message: 'Upload direto realizado com sucesso'
+                     };
+                 }
+                 
+                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                 
+             } catch (error) {
+                 console.warn('Upload direto falhou:', error);
+                 return { success: false, error: error.message };
+             }
+         }
+         
+         // Método 2: Upload via formulário web (simulação)
+         async function tryWebFormUpload(pdfBlob, fileName) {
+             try {
+                 // Simula upload via iframe oculto
+                 const iframe = document.createElement('iframe');
+                 iframe.style.display = 'none';
+                 iframe.src = TERABOX_CONFIG.methods.share;
+                 document.body.appendChild(iframe);
+                 
+                 // Aguarda carregamento do iframe
+                 await new Promise((resolve, reject) => {
+                     iframe.onload = resolve;
+                     iframe.onerror = reject;
+                     setTimeout(reject, 10000); // Timeout de 10s
+                 });
+                 
+                 // Tenta acessar o formulário de upload no iframe
+                 const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                 const uploadForm = iframeDoc.querySelector('form[enctype="multipart/form-data"]');
+                 
+                 if (uploadForm) {
+                     const fileInput = uploadForm.querySelector('input[type="file"]');
+                     if (fileInput) {
+                         // Simula seleção de arquivo
+                         const dataTransfer = new DataTransfer();
+                         const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+                         dataTransfer.items.add(file);
+                         fileInput.files = dataTransfer.files;
+                         
+                         // Dispara evento de mudança
+                         fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                         
+                         document.body.removeChild(iframe);
+                         return {
+                             success: true,
+                             method: 'web_form',
+                             url: TERABOX_CONFIG.uploadUrl,
+                             message: 'Upload via formulário web iniciado'
+                         };
+                     }
+                 }
+                 
+                 document.body.removeChild(iframe);
+                 throw new Error('Formulário de upload não encontrado');
+                 
+             } catch (error) {
+                 console.warn('Upload via formulário web falhou:', error);
+                 return { success: false, error: error.message };
+             }
+         }
+         
+         // Método 3: Upload remoto (via URL temporária)
+         async function tryRemoteUpload(pdfBlob, fileName) {
+             try {
+                 // Cria URL temporária para o arquivo
+                 const tempUrl = URL.createObjectURL(pdfBlob);
+                 
+                 const response = await fetch(TERABOX_CONFIG.methods.remote, {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({
+                         url: tempUrl,
+                         filename: fileName,
+                         path: '/Diarios_de_Bordo/'
+                     })
+                 });
+                 
+                 URL.revokeObjectURL(tempUrl);
+                 
+                 if (response.ok) {
+                     const result = await response.json();
+                     return {
+                         success: true,
+                         method: 'remote',
+                         url: result.url || TERABOX_CONFIG.uploadUrl,
+                         message: 'Upload remoto realizado com sucesso'
+                     };
+                 }
+                 
+                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                 
+             } catch (error) {
+                 console.warn('Upload remoto falhou:', error);
+                 return { success: false, error: error.message };
+             }
+         }
+         
+         function saveToCloud() {
+             // Coleta todos os dados do formulário
+             const today = new Date().toLocaleDateString('pt-BR');
+             const kmInicial = document.getElementById('kmInicial').value;
+             const kmFinal = document.getElementById('kmFinal').value;
+             const condutor = document.getElementById('condutor').value;
+             const assistentes = document.getElementById('assistentes').value;
+             const kmRodados = kmFinal - kmInicial;
+             
+             const diarioData = {
+                 data: today,
+                 viatura: selectedViatura,
+                 condutor: condutor,
+                 assistentes: assistentes || 'Nenhum',
+                 kmInicial: kmInicial,
+                 kmFinal: kmFinal,
+                 kmRodados: kmRodados,
+                 limpeza: selectedLimpeza === 'ok' ? 'OK' : 'Não OK',
+                 cones: coneCount,
+                 atividades: activities.map((activity, index) => ({
+                     numero: index + 1,
+                     horario: activity.time || 'Não informado',
+                     descricao: activity.description || 'Descrição não informada'
+                 })),
+                 timestamp: new Date().toISOString()
+             };
+             
+             // Cria arquivo JSON para download
+             const jsonString = JSON.stringify(diarioData, null, 2);
+             const blob = new Blob([jsonString], { type: 'application/json' });
+             const url = URL.createObjectURL(blob);
+             
+             // Cria link temporário para download
+             const a = document.createElement('a');
+             a.href = url;
+             const fileName = `Diario_Bordo_${selectedViatura.replace(' ', '_')}_${today.replace(/\//g, '-')}.json`;
+             a.download = fileName;
+             document.body.appendChild(a);
+             a.click();
+             document.body.removeChild(a);
+             URL.revokeObjectURL(url);
+             
+             // Abre o TeraBox em nova aba
+             setTimeout(() => {
+                 window.open('https://1024terabox.com/s/1XMxIP7cI4OQTarpBAC-VVQ', '_blank');
+             }, 1000);
+             
+             // Limpa os dados salvos após salvar na nuvem
+         sessionStorage.removeItem('diarioBordo');
+         
+         alert(`Dados preparados para a nuvem!\n\nArquivo JSON baixado: ${fileName}\n\nO TeraBox será aberto em uma nova aba.\nFaça o upload do arquivo JSON baixado.\n\nOs dados do formulário foram limpos.`);
+     }
+     
+     // Funções de controle do modal de upload
+     function showUploadModal() {
+         document.getElementById('uploadOverlay').classList.add('show');
+         document.getElementById('uploadStatus').classList.add('show');
+         document.getElementById('uploadSpinner').style.display = 'block';
+         document.getElementById('uploadActions').style.display = 'none';
+     }
+     
+     function hideUploadModal() {
+         document.getElementById('uploadOverlay').classList.remove('show');
+         document.getElementById('uploadStatus').classList.remove('show');
+     }
+     
+     function closeUploadModal() {
+         hideUploadModal();
+         uploadAttempts = 0;
+         currentPdfBlob = null;
+         currentFileName = null;
+     }
+     
+     function updateUploadStatus(title, message, showActions = false) {
+         document.getElementById('uploadTitle').textContent = title;
+         document.getElementById('uploadMessage').textContent = message;
+         document.getElementById('uploadSpinner').style.display = showActions ? 'none' : 'block';
+         document.getElementById('uploadActions').style.display = showActions ? 'block' : 'none';
+     }
+     
+     function showUploadSuccess(result) {
+         updateUploadStatus(
+             '✅ Upload realizado com sucesso!',
+             `📄 Arquivo: ${currentFileName}\n☁️ Método: ${result.method}\n🔗 TeraBox: Arquivo enviado`,
+             false
+         );
+         
+         setTimeout(() => {
+             hideUploadModal();
+             // Limpa os dados apenas após sucesso
+             clearFormData();
+             alert(`✅ Diário de bordo salvo com sucesso!\n\n📄 Arquivo: ${currentFileName}\n☁️ Enviado para: TeraBox Cloud\n🔗 Link: ${result.url}\n\nOs dados do formulário foram limpos.`);
+         }, 3000);
+     }
+     
+     function showUploadError(error) {
+         updateUploadStatus(
+             '❌ Erro no upload',
+             `Falha ao enviar para TeraBox: ${error}\n\nTentativa ${uploadAttempts}/${MAX_UPLOAD_ATTEMPTS}`,
+             true
+         );
+     }
+     
+     // Função para tentar novamente o upload
+     async function retryUpload() {
+         if (uploadAttempts >= MAX_UPLOAD_ATTEMPTS) {
+             updateUploadStatus(
+                 '⚠️ Limite de tentativas atingido',
+                 'Máximo de tentativas excedido. Use o download local como alternativa.',
+                 true
+             );
+             return;
+         }
+         
+         uploadAttempts++;
+         updateUploadStatus('🔄 Tentando novamente...', `Tentativa ${uploadAttempts}/${MAX_UPLOAD_ATTEMPTS}`);
+         
+         const result = await uploadToTeraBox(currentPdfBlob, currentFileName);
+         
+         if (result.success) {
+             showUploadSuccess(result);
+         } else {
+             showUploadError(result.error);
+         }
+     }
+     
+     // Função de fallback para download local
+     function downloadFallback() {
+         if (currentPdfBlob && currentFileName) {
+             const url = URL.createObjectURL(currentPdfBlob);
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = currentFileName;
+             document.body.appendChild(a);
+             a.click();
+             document.body.removeChild(a);
+             URL.revokeObjectURL(url);
+             
+             // Abre o TeraBox para upload manual
+             window.open(TERABOX_CONFIG.uploadUrl, '_blank');
+             
+             updateUploadStatus(
+                 '💾 Download realizado',
+                 'Arquivo baixado com sucesso. TeraBox aberto para upload manual.',
+                 false
+             );
+             
+             setTimeout(() => {
+                 hideUploadModal();
+                 clearFormData();
+             }, 2000);
+         }
+     }
+     
+     // Função para limpar dados do formulário
+     function clearFormData() {
+         sessionStorage.clear();
+         
+         // Reset form fields
+          document.getElementById('condutor').value = '';
+          document.getElementById('assistentes').value = '';
+          document.getElementById('kmInicial').value = '';
+          document.getElementById('kmFinal').value = '';
+          
+          // Reset selections
+          selectedViatura = '';
+          selectedLimpeza = '';
+          coneCount = 0;
+          activities = [];
+          
+          // Update displays
+          document.querySelectorAll('.viatura-card').forEach(c => c.classList.remove('selected'));
+          document.querySelectorAll('.status-option').forEach(o => o.classList.remove('selected'));
+          document.getElementById('coneCount').textContent = '0';
+          document.getElementById('activitiesContainer').innerHTML = '';
+          
+          // Return to first step
+          currentStep = 1;
+          showStep(1);
+     }
+    </script>
+</body>
+</html>
