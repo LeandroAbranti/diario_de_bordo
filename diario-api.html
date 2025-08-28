@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diário de Bordo - Viatura de Trânsito</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #1e3a8a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(30, 58, 138, 0.15);
+            overflow: hidden;
+            border: 2px solid rgba(30, 58, 138, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .step {
+            display: none;
+            animation: slideIn 0.5s ease-in-out;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #1e3a8a;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ffffff, #1e3a8a);
+            color: #1e3a8a;
+            border: 2px solid #1e3a8a;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            border-color: #10b981;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+            border-color: #ef4444;
+        }
+        
+        .viatura-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .viatura-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .viatura-card:hover {
+            border-color: #1e3a8a;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(30, 58, 138, 0.15);
+        }
+        
+        .viatura-card.selected {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            border-color: #1e3a8a;
+        }
+        
+        .status-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .status-option {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .status-option:hover {
+            border-color: #1e3a8a;
+            transform: translateY(-3px);
+        }
+        
+        .status-option.selected {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            border-color: #1e3a8a;
+        }
+        
+        .cone-counter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .cone-btn {
+            background: linear-gradient(45deg, #ffffff, #1e3a8a);
+            color: #1e3a8a;
+            border: 2px solid #1e3a8a;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .cone-btn:hover {
+            background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .cone-count {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #1e3a8a;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .activity-item {
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 100%);
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .step-dot.active {
+            background: #1e3a8a;
+            transform: scale(1.3);
+        }
+        
+        .step-dot.completed {
+            background: #10b981;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1e3a8a;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Diário de Bordo</h1>
+            <p>Sistema de Registro de Atividades - Viatura de Trânsito</p>
+        </div>
+        
+
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="step-indicator" id="stepIndicator"></div>
+        
+        <div class="content" id="mainContent">
+            <!-- Etapa 1: Seleção de Viatura -->
+            <div class="step active" id="step1">
+                <h2>🚗 Selecione a Viatura</h2>
+                <div class="viatura-grid">
+                    <div class="viatura-card" data-viatura="VTR 74">
+                    <h3>🚓 VTR 74</h3>
+                    <p>Patrulhamento Urbano</p>
+                </div>
+                <div class="viatura-card" data-viatura="VTR 199">
+                    <h3>🚔 VTR 199</h3>
+                    <p>Fiscalização de Trânsito</p>
+                </div>
+                <div class="viatura-card" data-viatura="VTR 60">
+                     <h3>🏍️ VTR 60</h3>
+                     <p>Operações Especiais</p>
+                 </div>
+                <div class="viatura-card" data-viatura="VTR 61">
+                    <h3>🏍️ VTR 61</h3>
+                    <p>Patrulhamento Rápido</p>
+                </div>
+                </div>
+                
+                <div class="navigation">
+                    <div></div>
+                    <button class="btn" id="nextBtn1" onclick="nextStep()" disabled>Próximo</button>
+                </div>
+            </div>
+            
+            <!-- Etapa 2: Dados Iniciais -->
+            <div class="step" id="step2">
+                <h2>📝 Dados Iniciais</h2>
+                
+                <div class="form-group">
+                    <label for="condutor">👨‍✈️ Condutor Responsável:</label>
+                    <input type="text" id="condutor" placeholder="Nome do condutor" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="assistentes">👥 Assistentes (opcional):</label>
+                    <input type="text" id="assistentes" placeholder="Nomes dos assistentes">
+                </div>
+                
+                <div class="form-group">
+                    <label for="kmInicial">🛣️ Quilometragem Inicial:</label>
+                    <input type="number" id="kmInicial" placeholder="Ex: 45000" required>
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="prevStep()">Anterior</button>
+                    <button class="btn" onclick="nextStep()">Próximo</button>
+                </div>
+            </div>
+            
+            <!-- Etapa 3: Status da Limpeza -->
+            <div class="step" id="step3">
+                <h2>🧽 Status da Limpeza</h2>
+                <p>Como está a limpeza da viatura?</p>
+                
+                <div class="status-options">
+                    <div class="status-option" data-status="ok">
+                        ✅ OK
+                    </div>
+                    <div class="status-option" data-status="nao-ok">
+                        ❌ Não OK
+                    </div>
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="prevStep()">Anterior</button>
+                    <button class="btn" onclick="nextStep()">Próximo</button>
+                </div>
+            </div>
+            
+            <!-- Etapa 4: Contagem de Cones -->
+            <div class="step" id="step4">
+                <h2>🚧 Contagem de Cones</h2>
+                <p>Quantos cones estão na viatura?</p>
+                
+                <div class="cone-counter">
+                    <button class="cone-btn" onclick="changeCones(-1)">-</button>
+                    <div class="cone-count" id="coneCount">0</div>
+                    <button class="cone-btn" onclick="changeCones(1)">+</button>
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="prevStep()">Anterior</button>
+                    <button class="btn" onclick="nextStep()">Próximo</button>
+                </div>
+            </div>
+            
+            <!-- Etapa 5: Atividades -->
+            <div class="step" id="step5">
+                <h2>📋 Atividades Realizadas</h2>
+                
+                <div id="activitiesContainer">
+                    <!-- Atividades serão adicionadas dinamicamente -->
+                </div>
+                
+                <button class="btn btn-success" onclick="addActivity()">➕ Adicionar Atividade</button>
+                
+                <div class="form-group">
+                    <label for="kmFinal">🛣️ Quilometragem Final:</label>
+                    <input type="number" id="kmFinal" placeholder="Ex: 45150" required>
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="prevStep()">Anterior</button>
+                    <button class="btn" onclick="nextStep()">Ver Resumo</button>
+                </div>
+            </div>
+            
+            <!-- Etapa 6: Resumo -->
+            <div class="step" id="step6">
+                <h2>📋 Resumo do Diário de Bordo</h2>
+                
+                <div class="summary-card" id="summaryCard">
+                    <!-- Resumo será gerado dinamicamente -->
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="prevStep()">Editar</button>
+                    <button class="btn btn-success" onclick="saveDiario()">💾 Salvar Diário</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processando...</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuração da API
+        const API_CONFIG = {
+            baseUrl: 'http://localhost:3000/api', // Alterar para URL do Render em produção
+            timeout: 30000
+        };
+        
+        // Variáveis globais
+        let currentStep = 1;
+        const totalSteps = 6;
+        let selectedViatura = '';
+        let selectedLimpeza = '';
+        let coneCount = 0;
+        let activities = [];
+        
+        // Inicialização
+        window.addEventListener('load', function() {
+            updateProgress();
+            updateStepIndicator();
+        });
+        
+
+        
+        // Funções do Formulário
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step${step}`).classList.add('active');
+            currentStep = step;
+            updateProgress();
+            updateStepIndicator();
+        }
+        
+        function nextStep() {
+            if (validateCurrentStep()) {
+                if (currentStep < totalSteps) {
+                    showStep(currentStep + 1);
+                    if (currentStep === 6) {
+                        generateSummary();
+                    }
+                }
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 1) {
+                showStep(currentStep - 1);
+            }
+        }
+        
+        function validateCurrentStep() {
+            switch(currentStep) {
+                case 1:
+                    if (!selectedViatura) {
+                        showAlert('Por favor, selecione uma viatura.', 'error');
+                        return false;
+                    }
+                    return true;
+                case 2:
+                    const kmInicial = document.getElementById('kmInicial').value;
+                    const condutor = document.getElementById('condutor').value;
+                    if (!kmInicial || !condutor) {
+                        showAlert('Por favor, preencha todos os campos obrigatórios.', 'error');
+                        return false;
+                    }
+                    return true;
+                case 3:
+                    if (!selectedLimpeza) {
+                        showAlert('Por favor, selecione o status da limpeza.', 'error');
+                        return false;
+                    }
+                    return true;
+                case 5:
+                    const kmFinal = document.getElementById('kmFinal').value;
+                    if (!kmFinal) {
+                        showAlert('Por favor, informe a quilometragem final.', 'error');
+                        return false;
+                    }
+                    const kmInicialVal = parseInt(document.getElementById('kmInicial').value);
+                    const kmFinalVal = parseInt(kmFinal);
+                    if (kmFinalVal < kmInicialVal) {
+                        showAlert('A quilometragem final deve ser maior que a inicial.', 'error');
+                        return false;
+                    }
+                    return true;
+                default:
+                    return true;
+            }
+        }
+        
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+        
+        function updateStepIndicator() {
+            const indicator = document.getElementById('stepIndicator');
+            indicator.innerHTML = '';
+            
+            for (let i = 1; i <= totalSteps; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'step-dot';
+                
+                if (i < currentStep) dot.classList.add('completed');
+                if (i === currentStep) dot.classList.add('active');
+                
+                indicator.appendChild(dot);
+            }
+        }
+        
+        // Event Listeners
+        document.querySelectorAll('.viatura-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.viatura-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedViatura = this.dataset.viatura;
+                document.getElementById('nextBtn1').disabled = false;
+            });
+        });
+        
+        document.querySelectorAll('.status-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.status-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedLimpeza = this.dataset.status;
+            });
+        });
+        
+        function changeCones(delta) {
+            const newCount = coneCount + delta;
+            if (newCount >= 0 && newCount <= 8) {
+                coneCount = newCount;
+                document.getElementById('coneCount').textContent = coneCount;
+            }
+        }
+        
+        function addActivity() {
+            const activity = {
+                id: Date.now(),
+                horario_inicio: '',
+                horario_fim: '',
+                descricao: '',
+                local: '',
+                observacoes: ''
+            };
+            activities.push(activity);
+            addActivityToDOM(activity);
+        }
+        
+        function addActivityToDOM(activity) {
+            const container = document.getElementById('activitiesContainer');
+            const activityDiv = document.createElement('div');
+            activityDiv.className = 'activity-item';
+            activityDiv.dataset.id = activity.id;
+            
+            activityDiv.innerHTML = `
+                <div class="activity-header">
+                    <h4>Atividade ${activities.length}</h4>
+                    <button class="btn btn-danger btn-sm" onclick="removeActivity(${activity.id})">🗑️</button>
+                </div>
+                <div class="form-group">
+                    <label>⏰ Horário Início:</label>
+                    <input type="time" value="${activity.horario_inicio}" onchange="updateActivity(${activity.id}, 'horario_inicio', this.value)">
+                </div>
+                <div class="form-group">
+                    <label>⏰ Horário Fim:</label>
+                    <input type="time" value="${activity.horario_fim}" onchange="updateActivity(${activity.id}, 'horario_fim', this.value)">
+                </div>
+                <div class="form-group">
+                    <label>📍 Local:</label>
+                    <input type="text" value="${activity.local}" placeholder="Local da atividade" onchange="updateActivity(${activity.id}, 'local', this.value)">
+                </div>
+                <div class="form-group">
+                    <label>📝 Descrição:</label>
+                    <textarea rows="3" placeholder="Descreva a atividade realizada..." onchange="updateActivity(${activity.id}, 'descricao', this.value)">${activity.descricao}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>📋 Observações:</label>
+                    <textarea rows="2" placeholder="Observações adicionais..." onchange="updateActivity(${activity.id}, 'observacoes', this.value)">${activity.observacoes}</textarea>
+                </div>
+            `;
+            
+            container.appendChild(activityDiv);
+        }
+        
+        function updateActivity(id, field, value) {
+            const activity = activities.find(a => a.id === id);
+            if (activity) {
+                activity[field] = value;
+            }
+        }
+        
+        function removeActivity(id) {
+            activities = activities.filter(a => a.id !== id);
+            document.querySelector(`[data-id="${id}"]`).remove();
+            
+            // Renumerar atividades
+            const activityItems = document.querySelectorAll('.activity-item');
+            activityItems.forEach((item, index) => {
+                const header = item.querySelector('h4');
+                header.textContent = `Atividade ${index + 1}`;
+            });
+        }
+        
+        function generateSummary() {
+            const kmInicial = document.getElementById('kmInicial').value;
+            const kmFinal = document.getElementById('kmFinal').value;
+            const condutor = document.getElementById('condutor').value;
+            const assistentes = document.getElementById('assistentes').value;
+            const kmRodados = kmFinal - kmInicial;
+            
+            const summaryCard = document.getElementById('summaryCard');
+            summaryCard.innerHTML = `
+                <h3>🚗 ${selectedViatura}</h3>
+                <div class="summary-item">
+                    <strong>👨‍✈️ Condutor:</strong>
+                    <span>${condutor}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>👥 Assistentes:</strong>
+                    <span>${assistentes || 'Nenhum'}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>🛣️ KM Inicial:</strong>
+                    <span>${kmInicial}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>🏁 KM Final:</strong>
+                    <span>${kmFinal}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>📏 KM Rodados:</strong>
+                    <span>${kmRodados}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>🧽 Limpeza:</strong>
+                    <span>${selectedLimpeza === 'ok' ? '✅ OK' : '❌ Não OK'}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>🚧 Cones:</strong>
+                    <span>${coneCount}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>📝 Atividades:</strong>
+                    <span>${activities.length}</span>
+                </div>
+            `;
+        }
+        
+        async function saveDiario() {
+            const kmInicial = parseInt(document.getElementById('kmInicial').value);
+            const kmFinal = parseInt(document.getElementById('kmFinal').value);
+            const condutor = document.getElementById('condutor').value;
+            const assistentes = document.getElementById('assistentes').value;
+            
+            const diarioData = {
+                data_registro: new Date().toISOString().split('T')[0],
+                viatura: selectedViatura,
+                km_inicial: kmInicial,
+                km_final: kmFinal,
+                km_rodados: kmFinal - kmInicial,
+                condutor: condutor,
+                assistentes: assistentes || null,
+                limpeza_ok: selectedLimpeza === 'ok',
+                cones_quantidade: coneCount,
+                observacoes: '',
+                atividades: activities.map(activity => ({
+                    descricao: activity.descricao,
+                    horario_inicio: activity.horario_inicio || null,
+                    horario_fim: activity.horario_fim || null,
+                    local: activity.local || null,
+                    observacoes: activity.observacoes || null
+                }))
+            };
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_CONFIG.baseUrl}/diario`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(diarioData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('Diário de bordo salvo com sucesso!', 'success');
+                    resetForm();
+                } else {
+                    showAlert(data.message || 'Erro ao salvar diário', 'error');
+                }
+            } catch (error) {
+                showAlert('Erro de conexão. Verifique sua internet.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function resetForm() {
+            // Reset variables
+            selectedViatura = '';
+            selectedLimpeza = '';
+            coneCount = 0;
+            activities = [];
+            
+            // Reset form fields
+            document.getElementById('condutor').value = '';
+            document.getElementById('assistentes').value = '';
+            document.getElementById('kmInicial').value = '';
+            document.getElementById('kmFinal').value = '';
+            
+            // Reset selections
+            document.querySelectorAll('.viatura-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.status-option').forEach(o => o.classList.remove('selected'));
+            document.getElementById('coneCount').textContent = '0';
+            document.getElementById('activitiesContainer').innerHTML = '';
+            document.getElementById('nextBtn1').disabled = true;
+            
+            // Return to first step
+            showStep(1);
+        }
+        
+        // Utility Functions
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+        
+        function showAlert(message, type) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            // Create new alert
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            // Insert at top of container
+            const container = document.querySelector('.container');
+            container.insertBefore(alert, container.firstChild);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
